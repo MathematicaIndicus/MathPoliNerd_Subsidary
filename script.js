@@ -49,6 +49,7 @@ function filterPosts(btn, cat) {
 }
 
 let blogPosts = [];
+const POST_CLICK_COUNTS_KEY = 'mathPoliNerdPostClickCounts';
 
 const categoryLabels = {
   'game-theory': 'Game Theory',
@@ -69,12 +70,76 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
+function getPostClickCounts() {
+  try {
+    return JSON.parse(localStorage.getItem(POST_CLICK_COUNTS_KEY) || '{}');
+  } catch (error) {
+    return {};
+  }
+}
+
+function savePostClickCounts(counts) {
+  try {
+    localStorage.setItem(POST_CLICK_COUNTS_KEY, JSON.stringify(counts));
+  } catch (error) {
+    // Browsing modes can block localStorage; the post should still open normally.
+  }
+}
+
+function recordPostClick(slug) {
+  if (!slug) return;
+
+  const counts = getPostClickCounts();
+  counts[slug] = (Number(counts[slug]) || 0) + 1;
+  savePostClickCounts(counts);
+}
+
 function formatDate(value) {
   return new Intl.DateTimeFormat('en', {
     month: 'long',
     day: 'numeric',
     year: 'numeric'
   }).format(new Date(value));
+}
+
+function estimateReadMinutes(content) {
+  const words = String(content || '').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 220));
+}
+
+function getMostClickedPost() {
+  const counts = getPostClickCounts();
+  return blogPosts.reduce((winner, post) => {
+    const clicks = Number(counts[post.slug]) || 0;
+    if (!clicks) return winner;
+    if (!winner || clicks > winner.clicks) return { post, clicks };
+    if (clicks === winner.clicks && new Date(post.createdAt) > new Date(winner.post.createdAt)) {
+      return { post, clicks };
+    }
+    return winner;
+  }, null)?.post || null;
+}
+
+function renderFeaturedEssay() {
+  const featuredPost = getMostClickedPost();
+  if (!featuredPost) return;
+
+  const label = document.getElementById('featuredLabel');
+  const title = document.getElementById('featuredTitle');
+  const excerpt = document.getElementById('featuredExcerpt');
+  const button = document.getElementById('featuredButton');
+  const image = document.getElementById('featuredImage');
+
+  if (label) label.textContent = '\u2726 Most Read Essay';
+  if (title) title.textContent = featuredPost.title;
+  if (excerpt) excerpt.textContent = featuredPost.excerpt || 'A reader favorite from the archive.';
+  if (button) {
+    button.onclick = () => showPost(featuredPost.slug);
+    button.textContent = 'Read Essay \u2192';
+  }
+  if (image && featuredPost.image) {
+    image.innerHTML = `<img src="${escapeHtml(featuredPost.image)}" alt="${escapeHtml(featuredPost.title)}">`;
+  }
 }
 
 function renderMath(container) {
@@ -165,15 +230,24 @@ function renderBlogList() {
 
 async function loadBlogPosts() {
   try {
-    const response = await fetch('/api/posts');
+    const response = await fetch('data/posts.json', { cache: 'no-store' });
     if (!response.ok) throw new Error('Could not load posts.');
 
-    blogPosts = await response.json();
+    const posts = await response.json();
+    blogPosts = posts
+      .filter(post => post.published)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map(post => ({
+        ...post,
+        readMinutes: estimateReadMinutes(post.content)
+      }));
+
     renderLatestPosts();
     renderBlogList();
+    renderFeaturedEssay();
     initReveal();
   } catch (error) {
-    const message = 'Start the backend with npm start to load editable blog posts.';
+    const message = 'Published posts could not be loaded. Please try again shortly.';
     const latestPosts = document.getElementById('latestPosts');
     const blogList = document.getElementById('blogList');
     if (latestPosts) latestPosts.innerHTML = `<p class="blog-loading">${message}</p>`;
@@ -185,6 +259,8 @@ function showPost(slug) {
   const post = blogPosts.find(item => item.slug === slug);
   const reader = document.getElementById('postReader');
   if (!post || !reader) return;
+
+  recordPostClick(slug);
 
   reader.innerHTML = `
     <p class="blog-row-cat">${escapeHtml(categoryLabels[post.category] || post.category)}</p>

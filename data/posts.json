@@ -1,15 +1,15 @@
 [
   {
     "id": "0c60bb68-0c87-43b1-a474-7b795f2c1967",
-    "title": "GUGUGA",
-    "slug": "guguga",
-    "category": "statistics",
-    "excerpt": "GoodBoy",
-    "image": "",
-    "content": "# Untitled\n\nWrite your idea here.\n\n$$\n\\int_a^b f(x)\\,dx\n$$",
+    "title": "The Strange case of Dr. Lim Sup and Mr. Lim Inf",
+    "slug": "lim-sup-lim-inf",
+    "category": "analysis",
+    "excerpt": "A case study on \"Lim Sup\" and \"Lim Inf\", the motivation behind their formation and how they are useful in understanding the \"Probabilistic World\".",
+    "image": "https://images.pexels.com/photos/4870334/pexels-photo-4870334.jpeg",
+    "content": "# Lim Sup And Lim Inf\n\nLim Sup and Lim Inf are one of the most used words during our Undergraduate years, studying Real Analysis, and later Metric Spaces and Topology.",
     "published": true,
     "createdAt": "2026-04-30T16:02:13.110Z",
-    "updatedAt": "2026-04-30T16:02:13.110Z"
+    "updatedAt": "2026-05-01T07:50:41.424Z"
   },
   {
     "id": "sample-symmetry-in-nature",
