@@ -9,18 +9,6 @@
     "content": "# Lim Sup And Lim Inf\n\nLim Sup and Lim Inf are one of the most used words during our Undergraduate years, studying Real Analysis, and later Metric Spaces and Topology.",
     "published": true,
     "createdAt": "2026-04-30T16:02:13.110Z",
-    "updatedAt": "2026-05-01T12:27:37.620Z"
-  },
-  {
-    "id": "sample-symmetry-in-nature",
-    "title": "Symmetry in Nature",
-    "slug": "symmetry-in-nature",
-    "category": "algebra",
-    "excerpt": "An exploration of how symmetry principles manifest in natural phenomena, from crystal structures to biological forms and even in our everyday games.",
-    "image": "https://images.pexels.com/photos/12264565/pexels-photo-12264565.jpeg",
-    "content": "# Symmetry in Nature\n\nSymmetry is one of those ideas that appears both visually and algebraically. A square, for example, can be rotated by $90^\\circ$, $180^\\circ$, $270^\\circ$, or $360^\\circ$ and still look unchanged.\n\nThe set of these transformations forms a group. If $G$ is a group acting on an object $X$, then symmetry asks which transformations preserve the structure of $X$.\n\n$$\nG = \\{g : X \\to X \\mid g \\text{ preserves structure}\\}\n$$\n\nThat little definition is a bridge between geometry, algebra, physics, and even political systems where invariance and structure matter.\n\n<figure class=\"post-image post-image--left\" style=\"--image-width: 50%; --image-rotate: 0deg;\">\n  <img src=\"https://images.pexels.com/photos/35466382/pexels-photo-35466382.jpeg\" alt=\"DIMIKI Dimiki DIMI\" />\n</figure>\nFODDJDHjninvrvvjjwv",
-    "published": true,
-    "createdAt": "2026-04-29T12:00:00.000Z",
-    "updatedAt": "2026-05-09T16:15:17.475Z"
+    "updatedAt": "2026-05-13T16:45:54.817Z"
   }
 ]
