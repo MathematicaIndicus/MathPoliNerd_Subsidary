@@ -1,18 +1,37 @@
 # MathPoliNerd_Subsidary
 
-Static personal website and blog for GitHub Pages.
+Static public website with a separate blog API/admin server.
 
-## Publishing blog posts
+## Architecture
 
-The public site reads published posts from `data/posts.json`, so it can run on GitHub Pages without a backend.
+- `index.html`, `style.css`, `script.js`, `config.js`, `MyPicture.jpeg`, and `.nojekyll` are the public static website.
+- `server.js` is the blog API/admin server. It stores posts in `data/posts.json`.
+- `admin.html` is a browser admin editor. You can open it locally or host it privately and point it at the blog server.
 
-To edit posts locally:
+## Local development
 
 1. Create a `.env` file with `BLOG_ADMIN_TOKEN=your-long-random-token`.
 2. Run `npm start`.
-3. Open `http://localhost:3000/admin.html`.
-4. Paste the token from your `.env` file into the admin page.
-5. Create or edit posts and mark the ones you want online as published.
-6. Commit and push the updated `data/posts.json`.
+3. Open `http://localhost:3000/` for the public site.
+4. Open `http://localhost:3000/admin.html` for the admin editor.
+5. Paste the token from your `.env` file into the admin page.
 
-GitHub Pages will redeploy after the push, and online readers will see the updated published posts.
+## Deployment
+
+1. Deploy the blog server somewhere that can run Node.js.
+2. Set these environment variables on the server:
+   - `BLOG_ADMIN_TOKEN`: a long private token only you know.
+   - `PUBLIC_ORIGINS`: your public website origin, for example `https://yourname.github.io`. Use `*` while testing if needed.
+   - `PORT`: optional. Many hosts set this automatically.
+3. Confirm the API works at `https://your-server.example/api/posts`.
+4. Edit `config.js` before publishing the static site:
+
+```js
+window.MathPoliNerdConfig = {
+  BLOG_API_BASE_URL: "https://your-server.example",
+  ADMIN_API_BASE_URL: "https://your-server.example"
+};
+```
+
+5. Publish the static files to GitHub Pages, Netlify, Vercel static hosting, Cloudflare Pages, or any static host.
+6. Open `admin.html`, confirm the Blog Server URL points at your server, paste `BLOG_ADMIN_TOKEN`, and create posts.

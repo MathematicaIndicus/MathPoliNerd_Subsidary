@@ -4,7 +4,8 @@
   "description": "Personal blog with a lightweight local backend and Markdown/LaTeX editor.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "server": "node server.js"
   },
   "keywords": [
     "blog",

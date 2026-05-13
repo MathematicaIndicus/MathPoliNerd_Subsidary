@@ -29,6 +29,10 @@ function loadLocalEnv() {
 loadLocalEnv();
 
 const ADMIN_TOKEN = process.env.BLOG_ADMIN_TOKEN || "local-dev-token";
+const PUBLIC_ORIGINS = (process.env.PUBLIC_ORIGINS || "*")
+  .split(",")
+  .map(origin => origin.trim())
+  .filter(Boolean);
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -61,6 +65,21 @@ function readPosts() {
 function writePosts(posts) {
   ensureStore();
   fs.writeFileSync(POSTS_FILE, `${JSON.stringify(posts, null, 2)}\n`, "utf8");
+}
+
+function applyCors(req, res) {
+  const origin = req.headers.origin;
+  const allowAnyOrigin = PUBLIC_ORIGINS.includes("*");
+  const allowedOrigin = allowAnyOrigin ? "*" : PUBLIC_ORIGINS.find(item => item === origin);
+
+  if (allowedOrigin) {
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+    if (!allowAnyOrigin) res.setHeader("Vary", "Origin");
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Admin-Token");
+  res.setHeader("Access-Control-Max-Age", "86400");
 }
 
 function sendJson(res, status, payload) {
@@ -226,6 +245,12 @@ function serveStatic(req, res, pathname) {
 
 const server = http.createServer(async (req, res) => {
   try {
+    applyCors(req, res);
+    if (req.method === "OPTIONS") {
+      res.writeHead(204);
+      return res.end();
+    }
+
     const url = new URL(req.url, `http://${req.headers.host}`);
     const pathname = decodeURIComponent(url.pathname);
 

@@ -158,6 +158,11 @@
       outline: none;
     }
 
+    input[type="range"] {
+      padding-inline: 0;
+      accent-color: var(--accent);
+    }
+
     input:focus, textarea:focus, select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(141, 79, 42, .12);
@@ -182,6 +187,58 @@
       gap: 12px;
       flex-wrap: wrap;
       margin-top: 18px;
+    }
+
+    .media-helper {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 253, 248, .72);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .media-helper-title {
+      margin: 0 0 10px;
+      font-family: var(--font-ui);
+      font-size: .74rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent-dark);
+    }
+
+    .media-helper label {
+      margin-bottom: 12px;
+    }
+
+    .media-control-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .range-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .range-value {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .media-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .media-actions button {
+      padding: 9px 14px;
+      font-size: .9rem;
     }
 
     .status {
@@ -213,6 +270,68 @@
       overflow: auto;
     }
 
+    .preview img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 16px;
+      margin: 24px 0 10px;
+      border: 1px solid rgba(94, 51, 29, .12);
+    }
+
+    .preview .post-image {
+      width: min(var(--image-width, 100%), 100%);
+      margin: 30px 0;
+      display: grid;
+      justify-items: center;
+      transform: rotate(var(--image-rotate, 0deg));
+      transform-origin: center;
+    }
+
+    .preview .post-image--left {
+      float: left;
+      margin: 8px 24px 18px 0;
+      max-width: 48%;
+    }
+
+    .preview .post-image--center { margin-inline: auto; }
+
+    .preview .post-image--right {
+      float: right;
+      margin: 8px 0 18px 24px;
+      max-width: 48%;
+    }
+
+    .preview .post-image img {
+      width: 100%;
+      margin: 0 0 10px;
+    }
+
+    .preview .post-image figcaption {
+      color: var(--muted);
+      font-family: var(--font-ui);
+      font-size: .9rem;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .preview::after {
+      content: "";
+      display: block;
+      clear: both;
+    }
+
+    .preview .image-caption {
+      display: block;
+      margin-top: 0;
+      color: var(--muted);
+      font-family: var(--font-ui);
+      font-size: .9rem;
+      text-align: center;
+    }
+
     .hint {
       margin: 0 0 18px;
       color: var(--muted);
@@ -221,7 +340,13 @@
     }
 
     @media (max-width: 1050px) {
-      main, .workspace { grid-template-columns: 1fr; }
+      main, .workspace, .media-control-grid { grid-template-columns: 1fr; }
+      .preview .post-image--left,
+      .preview .post-image--right {
+        float: none;
+        max-width: 100%;
+        margin: 30px auto;
+      }
       header { align-items: flex-start; flex-direction: column; }
     }
   </style>
@@ -241,7 +366,11 @@
   <main>
     <aside>
       <p class="panel-title">Posts</p>
-      <p class="hint">Run with <strong>npm start</strong>, then save using the admin token from your local <strong>.env</strong> file.</p>
+      <p class="hint">Point this editor at your deployed blog server, then save using the admin token from that server's environment.</p>
+      <label>
+        Blog Server URL
+        <input id="apiBase" placeholder="https://api.your-domain.com" />
+      </label>
       <label>
         Admin Token
         <input id="token" type="password" autocomplete="off" placeholder="Paste BLOG_ADMIN_TOKEN" />
@@ -283,6 +412,46 @@
           Image URL
           <input id="image" placeholder="https://..." />
         </label>
+        <div class="media-helper">
+          <p class="media-helper-title">Insert picture in post</p>
+          <label>
+            Picture or Illustration URL
+            <input id="inlineImageUrl" placeholder="https://... or images/my-topic.png" />
+          </label>
+          <div class="form-grid">
+            <label>
+              Alt Text
+              <input id="inlineImageAlt" placeholder="Diagram of a voting paradox" />
+            </label>
+            <label>
+              Caption
+              <input id="inlineImageCaption" placeholder="Optional short caption" />
+            </label>
+          </div>
+          <div class="media-control-grid">
+            <label>
+              <span class="range-label">Size <span class="range-value" id="inlineImageWidthValue">100%</span></span>
+              <input id="inlineImageWidth" type="range" min="25" max="100" step="5" value="100" />
+            </label>
+            <label>
+              Position
+              <select id="inlineImageAlign">
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </label>
+            <label>
+              <span class="range-label">Rotate <span class="range-value" id="inlineImageRotateValue">0deg</span></span>
+              <input id="inlineImageRotate" type="range" min="-20" max="20" step="1" value="0" />
+            </label>
+          </div>
+          <p class="hint">Place your cursor in the content box, then insert an image where that topic needs it. Small left or right pictures let the following text continue beside them. To move a picture later, move its whole figure block in the content text.</p>
+          <div class="media-actions">
+            <button class="ghost" type="button" onclick="insertImageBlock(false)">Insert Picture</button>
+            <button class="ghost" type="button" onclick="insertImageBlock(true)">Insert With Caption</button>
+          </div>
+        </div>
         <label>
           Content
           <textarea id="content" placeholder="Write Markdown here. Inline math: $a^2+b^2=c^2$. Display math: $$E=mc^2$$"></textarea>
@@ -309,14 +478,31 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+  <script src="config.js"></script>
   <script>
     const fields = ["postId", "title", "slug", "category", "excerpt", "image", "content", "published"];
+    const siteConfig = window.MathPoliNerdConfig || {};
     let posts = [];
 
     const $ = id => document.getElementById(id);
     const tokenInput = $("token");
+    const apiBaseInput = $("apiBase");
+    const defaultAdminApiBase = String(
+      siteConfig.ADMIN_API_BASE_URL || siteConfig.BLOG_API_BASE_URL || siteConfig.API_BASE_URL || ""
+    ).trim().replace(/\/+$/, "");
+
+    apiBaseInput.value = localStorage.getItem("blogAdminApiBaseUrl") || defaultAdminApiBase;
+    apiBaseInput.addEventListener("input", () => {
+      localStorage.setItem("blogAdminApiBaseUrl", apiBaseInput.value.trim().replace(/\/+$/, ""));
+    });
+
     tokenInput.value = localStorage.getItem("blogAdminToken") || "";
     tokenInput.addEventListener("input", () => localStorage.setItem("blogAdminToken", tokenInput.value));
+
+    function apiUrl(path) {
+      const baseUrl = apiBaseInput.value.trim().replace(/\/+$/, "");
+      return baseUrl ? `${baseUrl}${path}` : path;
+    }
 
     function authHeaders() {
       return {
@@ -329,6 +515,70 @@
       return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     }
 
+    function clampNumber(value, min, max, fallback) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return fallback;
+      return Math.min(max, Math.max(min, number));
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;")
+        .trim();
+    }
+
+    const escapeAttribute = escapeHtml;
+
+    function insertAtCursor(textarea, text) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = textarea.value.slice(0, start);
+      const after = textarea.value.slice(end);
+      const prefix = before && !before.endsWith("\n") ? "\n\n" : "";
+      const suffix = after && !after.startsWith("\n") ? "\n\n" : "";
+
+      textarea.value = `${before}${prefix}${text}${suffix}${after}`;
+      const cursor = before.length + prefix.length + text.length;
+      textarea.focus();
+      textarea.setSelectionRange(cursor, cursor);
+      renderPreview();
+    }
+
+    function insertImageBlock(withCaption = false) {
+      const url = $("inlineImageUrl").value.trim();
+      const alt = $("inlineImageAlt").value || $("title").value || "Blog image";
+      const caption = $("inlineImageCaption").value.trim();
+      const width = clampNumber($("inlineImageWidth").value, 25, 100, 100);
+      const rotate = clampNumber($("inlineImageRotate").value, -20, 20, 0);
+      const alignValue = $("inlineImageAlign").value;
+      const align = ["left", "center", "right"].includes(alignValue) ? alignValue : "center";
+
+      if (!url) {
+        $("inlineImageUrl").focus();
+        return setStatus("Add an image URL first.", true);
+      }
+
+      const lines = [
+        `<figure class="post-image post-image--${align}" style="--image-width: ${width}%; --image-rotate: ${rotate}deg;">`,
+        `  <img src="${escapeAttribute(url)}" alt="${escapeAttribute(alt)}" />`
+      ];
+
+      if (withCaption && caption) lines.push(`  <figcaption>${escapeHtml(caption)}</figcaption>`);
+      lines.push("</figure>");
+
+      insertAtCursor($("content"), lines.join("\n"));
+      setStatus("Image inserted into the post.");
+    }
+
+    function syncMediaControlLabels() {
+      $("inlineImageWidthValue").textContent = `${$("inlineImageWidth").value}%`;
+      $("inlineImageRotateValue").textContent = `${$("inlineImageRotate").value}deg`;
+    }
+
     function setStatus(message, isError = false) {
       $("status").textContent = message;
       $("status").style.color = isError ? "#a33a2f" : "var(--green)";
@@ -338,7 +588,8 @@
     function renderPreview() {
       const markdown = $("content").value || "Start writing and your preview will bloom here.";
       const html = marked.parse(markdown);
-      $("preview").innerHTML = `<p class="panel-title">Live Preview</p>${DOMPurify.sanitize(html)}`;
+      const cleanHtml = DOMPurify.sanitize(html, { ADD_ATTR: ["style", "class"] });
+      $("preview").innerHTML = `<p class="panel-title">Live Preview</p>${cleanHtml}`;
       renderMathInElement($("preview"), {
         delimiters: [
           { left: "$$", right: "$$", display: true },
@@ -391,7 +642,7 @@
     }
 
     async function loadPosts() {
-      const response = await fetch("/api/posts", { headers: { "Authorization": `Bearer ${tokenInput.value.trim()}` } });
+      const response = await fetch(apiUrl("/api/posts"), { headers: { "Authorization": `Bearer ${tokenInput.value.trim()}` } });
       posts = await response.json();
       if (!Array.isArray(posts)) posts = [];
       renderPostList();
@@ -427,7 +678,7 @@
       if (!id) return setStatus("Nothing saved to delete yet.", true);
       if (!confirm("Delete this post? This cannot be undone.")) return;
 
-      const response = await fetch(`/api/posts/${encodeURIComponent(id)}`, {
+      const response = await fetch(apiUrl(`/api/posts/${encodeURIComponent(id)}`), {
         method: "DELETE",
         headers: authHeaders()
       });
@@ -447,12 +698,14 @@
     });
 
     ["content", "title", "excerpt"].forEach(id => $(id).addEventListener("input", renderPreview));
+    ["inlineImageWidth", "inlineImageRotate"].forEach(id => $(id).addEventListener("input", syncMediaControlLabels));
+    syncMediaControlLabels();
 
     $("editorForm").addEventListener("submit", async event => {
       event.preventDefault();
       const id = $("postId").value;
       const method = id ? "PUT" : "POST";
-      const url = id ? `/api/posts/${encodeURIComponent(id)}` : "/api/posts";
+      const url = id ? apiUrl(`/api/posts/${encodeURIComponent(id)}`) : apiUrl("/api/posts");
 
       const response = await fetch(url, {
         method,

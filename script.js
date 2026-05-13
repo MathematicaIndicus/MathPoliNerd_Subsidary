@@ -50,6 +50,7 @@ function filterPosts(btn, cat) {
 
 let blogPosts = [];
 const POST_CLICK_COUNTS_KEY = 'mathPoliNerdPostClickCounts';
+const siteConfig = window.MathPoliNerdConfig || {};
 
 const categoryLabels = {
   'game-theory': 'Game Theory',
@@ -107,6 +108,15 @@ function estimateReadMinutes(content) {
   return Math.max(1, Math.ceil(words / 220));
 }
 
+function getBlogApiBaseUrl() {
+  return String(siteConfig.BLOG_API_BASE_URL || siteConfig.API_BASE_URL || '').trim().replace(/\/+$/, '');
+}
+
+function blogApiUrl(path) {
+  const baseUrl = getBlogApiBaseUrl();
+  return baseUrl ? `${baseUrl}${path}` : path;
+}
+
 function getMostClickedPost() {
   const counts = getPostClickCounts();
   return blogPosts.reduce((winner, post) => {
@@ -161,7 +171,7 @@ function renderMarkdown(markdown) {
     return `<pre>${escapeHtml(markdown)}</pre>`;
   }
 
-  return DOMPurify.sanitize(marked.parse(markdown || ''));
+  return DOMPurify.sanitize(marked.parse(markdown || ''), { ADD_ATTR: ['style', 'class'] });
 }
 
 function postImage(post, className) {
@@ -230,10 +240,25 @@ function renderBlogList() {
 
 async function loadBlogPosts() {
   try {
-    const response = await fetch('data/posts.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Could not load posts.');
+    const sources = [blogApiUrl('/api/posts')];
+    if (!getBlogApiBaseUrl()) sources.push('data/posts.json');
 
-    const posts = await response.json();
+    let posts = null;
+    let lastError = null;
+
+    for (const source of sources) {
+      try {
+        const response = await fetch(source, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Could not load posts from ${source}.`);
+        posts = await response.json();
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (!Array.isArray(posts)) throw lastError || new Error('Could not load posts.');
+
     blogPosts = posts
       .filter(post => post.published)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
