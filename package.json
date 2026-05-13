@@ -2,10 +2,10 @@
   "name": "mathpoli-nerd-blog",
   "version": "1.0.0",
   "description": "Personal blog with a lightweight local backend and Markdown/LaTeX editor.",
-  "main": "server.js",
+  "main": "js/server.js",
   "scripts": {
-    "start": "node server.js",
-    "server": "node server.js"
+    "start": "node js/server.js",
+    "server": "node js/server.js"
   },
   "keywords": [
     "blog",

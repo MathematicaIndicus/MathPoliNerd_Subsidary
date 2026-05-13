@@ -4,7 +4,7 @@ const path = require("path");
 const crypto = require("crypto");
 
 const PORT = Number(process.env.PORT || 3000);
-const ROOT = __dirname;
+const ROOT = path.resolve(__dirname, "..");
 const DATA_DIR = path.join(ROOT, "data");
 const POSTS_FILE = path.join(DATA_DIR, "posts.json");
 const ENV_FILE = path.join(ROOT, ".env");
@@ -28,7 +28,11 @@ function loadLocalEnv() {
 
 loadLocalEnv();
 
-const ADMIN_TOKEN = process.env.BLOG_ADMIN_TOKEN || "local-dev-token";
+const ADMIN_TOKEN = process.env.BLOG_ADMIN_TOKEN;
+if (!ADMIN_TOKEN) {
+  console.error("Missing BLOG_ADMIN_TOKEN. Set it in your environment before starting the server.");
+  process.exit(1);
+}
 const PUBLIC_ORIGINS = (process.env.PUBLIC_ORIGINS || "*")
   .split(",")
   .map(origin => origin.trim())
@@ -269,7 +273,5 @@ ensureStore();
 server.listen(PORT, () => {
   console.log(`Math&Poli Nerd backend running at http://localhost:${PORT}`);
   console.log(`Admin editor: http://localhost:${PORT}/admin.html`);
-  console.log(process.env.BLOG_ADMIN_TOKEN
-    ? "Admin token loaded from BLOG_ADMIN_TOKEN."
-    : "Using fallback admin token: local-dev-token");
+  console.log("Admin token loaded from BLOG_ADMIN_TOKEN.");
 });
