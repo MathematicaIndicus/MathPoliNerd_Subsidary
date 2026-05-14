@@ -117,22 +117,13 @@ function blogApiUrl(path) {
   return baseUrl ? `${baseUrl}${path}` : path;
 }
 
-function getMostClickedPost() {
-  const counts = getPostClickCounts();
-  return blogPosts.reduce((winner, post) => {
-    const clicks = Number(counts[post.slug]) || 0;
-    if (!clicks) return winner;
-    if (!winner || clicks > winner.clicks) return { post, clicks };
-    if (clicks === winner.clicks && new Date(post.createdAt) > new Date(winner.post.createdAt)) {
-      return { post, clicks };
-    }
-    return winner;
-  }, null)?.post || null;
+function getRecentlyUploadedPost() {
+  return blogPosts[0] || null;
 }
 
-function renderFeaturedEssay() {
-  const featuredPost = getMostClickedPost();
-  if (!featuredPost) return;
+function renderRecentlyUploadedPost() {
+  const recentPost = getRecentlyUploadedPost();
+  if (!recentPost) return;
 
   const label = document.getElementById('featuredLabel');
   const title = document.getElementById('featuredTitle');
@@ -140,15 +131,15 @@ function renderFeaturedEssay() {
   const button = document.getElementById('featuredButton');
   const image = document.getElementById('featuredImage');
 
-  if (label) label.textContent = '\u2726 Most Read Essay';
-  if (title) title.textContent = featuredPost.title;
-  if (excerpt) excerpt.textContent = featuredPost.excerpt || 'A reader favorite from the archive.';
+  if (label) label.textContent = 'Recently Uploaded';
+  if (title) title.textContent = recentPost.title;
+  if (excerpt) excerpt.textContent = recentPost.excerpt || 'The newest writing from the blog.';
   if (button) {
-    button.onclick = () => showPost(featuredPost.slug);
-    button.textContent = 'Read Essay \u2192';
+    button.onclick = () => showPost(recentPost.slug);
+    button.textContent = 'Read Latest \u2192';
   }
-  if (image && featuredPost.image) {
-    image.innerHTML = `<img src="${escapeHtml(featuredPost.image)}" alt="${escapeHtml(featuredPost.title)}">`;
+  if (image && recentPost.image) {
+    image.innerHTML = `<img src="${escapeHtml(recentPost.image)}" alt="${escapeHtml(recentPost.title)}">`;
   }
 }
 
@@ -269,7 +260,7 @@ async function loadBlogPosts() {
 
     renderLatestPosts();
     renderBlogList();
-    renderFeaturedEssay();
+    renderRecentlyUploadedPost();
     initReveal();
   } catch (error) {
     const message = 'Published posts could not be loaded. Please try again shortly.';
