@@ -1,14 +1,14 @@
 [
   {
     "id": "0c60bb68-0c87-43b1-a474-7b795f2c1967",
-    "title": "The Strange case of Dr. Lim Sup and Mr. Lim Inf",
-    "slug": "lim-sup-lim-inf",
-    "category": "analysis",
-    "excerpt": "A case study on \"Lim Sup\" and \"Lim Inf\", the motivation behind their formation and how they are useful in understanding the \"Probabilistic World\".",
-    "image": "https://images.pexels.com/photos/4870334/pexels-photo-4870334.jpeg",
-    "content": "# Lim Sup And Lim Inf\n\nLim Sup and Lim Inf are one of the most used words during our Undergraduate years, studying Real Analysis, and later Metric Spaces and Topology. Hello There is more to it. Stay tuned.\nAnurag Goswami",
+    "title": "Symmetry in Nature",
+    "slug": "sym-met-ry",
+    "category": "algebra",
+    "excerpt": "A case study on Symmetric Patterns evident in nature called \"fractals\", asking why they tends to occur, and is there any way to classify them(?).",
+    "image": "https://images.pexels.com/photos/2909234/pexels-photo-2909234.jpeg",
+    "content": "# Symmetry of Nature And the Human Mind\n\nSymmetry is the ultimate truth of the nature. The truth that gets manifested in forms of beautiful designs and patterns.\n\nSymmetric patters and data in this universe is very relevant and in deeper sense it is what,  helps us to study the laws of the nature.\n\n<figure class=\"post-image post-image--right\" style=\"--image-width: 70%; --image-rotate: 0deg;\">\n  <img src=\"https://images.pexels.com/photos/5643155/pexels-photo-5643155.jpeg\" alt=\"Diagram 1\" />\n  <figcaption>The Symmetric Pattern in a Plant</figcaption>\n</figure>\n\nThe Human mind is very pattern oriented. It tries to grab any symmetrical data it can grab, and extrapolate it to come to a conclusion. The Symmetry in nature, that we can see around us are in some sense, the amalgamation of structured, pattern oriented data and geometry.\n\nWhenever we collect Raw data from scientific readings, most of it is \"noise\", the numbers that are inbuilt choatic, and can't be interpreted to produce any inference. But using proper statistical methods, we distillate these unnecessary readings in-order to find some hidden patterns or formulas. Pattern oriented study of symmetry is",
     "published": true,
     "createdAt": "2026-04-30T16:02:13.110Z",
-    "updatedAt": "2026-05-13T19:08:38.376Z"
+    "updatedAt": "2026-05-14T17:47:19.334Z"
   }
 ]
