@@ -117,6 +117,15 @@ function blogApiUrl(path) {
   return baseUrl ? `${baseUrl}${path}` : path;
 }
 
+function getContactApiBaseUrl() {
+  return String(siteConfig.CONTACT_API_BASE_URL || siteConfig.BLOG_API_BASE_URL || siteConfig.API_BASE_URL || '').trim().replace(/\/+$/, '');
+}
+
+function contactApiUrl(path) {
+  const baseUrl = getContactApiBaseUrl();
+  return baseUrl ? `${baseUrl}${path}` : path;
+}
+
 function getRecentlyUploadedPost() {
   return blogPosts[0] || null;
 }
@@ -289,24 +298,59 @@ function showPost(slug) {
   showPage('post');
 }
 
-function submitForm() {
+async function submitForm(event) {
+  if (event) event.preventDefault();
+
   const fname = document.getElementById('fname').value.trim();
+  const lname = document.getElementById('lname').value.trim();
   const email = document.getElementById('email').value.trim();
+  const subject = document.getElementById('subject').value.trim();
   const msg = document.getElementById('message').value.trim();
+  const successMsg = document.getElementById('successMsg');
+  const submitButton = document.getElementById('contactSubmit');
 
   if (!fname || !email || !msg) {
     alert('Please fill in your name, email, and message.');
     return;
   }
 
-  const successMsg = document.getElementById('successMsg');
-  successMsg.style.display = 'block';
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending...';
+  }
+  if (successMsg) successMsg.style.display = 'none';
 
-  ['fname', 'lname', 'email', 'subject', 'message'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  try {
+    const response = await fetch(contactApiUrl('/api/contact'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: fname,
+        lastName: lname,
+        email,
+        subject,
+        message: msg
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Your message could not be sent right now.');
 
-  setTimeout(() => { successMsg.style.display = 'none'; }, 5000);
+    if (successMsg) {
+      successMsg.textContent = "Thanks! Your message has been sent.";
+      successMsg.style.display = 'block';
+    }
+    ['fname', 'lname', 'email', 'subject', 'message'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    setTimeout(() => { if (successMsg) successMsg.style.display = 'none'; }, 5000);
+  } catch (error) {
+    alert(error.message || 'Your message could not be sent right now. Please try again later.');
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = 'Send Message \u2192';
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

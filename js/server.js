@@ -2,6 +2,8 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const net = require("net");
+const tls = require("tls");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = path.resolve(__dirname, "..");
@@ -37,6 +39,12 @@ const PUBLIC_ORIGINS = (process.env.PUBLIC_ORIGINS || "*")
   .split(",")
   .map(origin => origin.trim())
   .filter(Boolean);
+const CONTACT_TO_EMAIL = process.env.CONTACT_TO_EMAIL;
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -109,6 +117,120 @@ function readBody(req) {
   });
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || ""));
+}
+
+function cleanText(value, maxLength) {
+  return String(value || "").replace(/\r/g, "").trim().slice(0, maxLength);
+}
+
+function encodeBase64(value) {
+  return Buffer.from(String(value || ""), "utf8").toString("base64");
+}
+
+function formatEmailAddress(name, email) {
+  const safeName = cleanText(name, 120).replace(/["\\]/g, "");
+  return safeName ? `"${safeName}" <${email}>` : email;
+}
+
+function createSmtpClient() {
+  const secure = SMTP_PORT === 465;
+  let socket;
+  let buffer = "";
+
+  const connect = () => new Promise((resolve, reject) => {
+    const options = { host: SMTP_HOST, port: SMTP_PORT, servername: SMTP_HOST };
+    socket = secure ? tls.connect(options, resolve) : net.connect(options, resolve);
+    socket.setEncoding("utf8");
+    socket.setTimeout(15000);
+    socket.on("data", chunk => { buffer += chunk; });
+    socket.on("error", reject);
+    socket.on("timeout", () => reject(new Error("SMTP connection timed out.")));
+  });
+
+  const readResponse = expected => new Promise((resolve, reject) => {
+    const startedAt = Date.now();
+    const check = () => {
+      const lines = buffer.split(/\r?\n/).filter(Boolean);
+      const lastLine = lines[lines.length - 1] || "";
+      const isComplete = /^\d{3} /.test(lastLine);
+
+      if (isComplete) {
+        const response = buffer;
+        buffer = "";
+        const code = Number(lastLine.slice(0, 3));
+        const expectedCodes = Array.isArray(expected) ? expected : [expected];
+        if (expectedCodes.includes(code)) return resolve(response);
+        return reject(new Error(`SMTP error ${code}: ${lastLine}`));
+      }
+
+      if (Date.now() - startedAt > 15000) return reject(new Error("SMTP response timed out."));
+      setTimeout(check, 25);
+    };
+    check();
+  });
+
+  const send = async (command, expected) => {
+    socket.write(`${command}\r\n`);
+    return readResponse(expected);
+  };
+
+  const startTls = async () => {
+    await send("STARTTLS", 220);
+    socket.removeAllListeners("data");
+    socket = tls.connect({ socket, servername: SMTP_HOST });
+    socket.setEncoding("utf8");
+    socket.setTimeout(15000);
+    socket.on("data", chunk => { buffer += chunk; });
+  };
+
+  const close = () => {
+    if (socket && !socket.destroyed) socket.end();
+  };
+
+  return { connect, readResponse, send, startTls, close };
+}
+
+async function sendEmail({ fromName, replyTo, subject, text }) {
+  if (!CONTACT_TO_EMAIL || !SMTP_HOST || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
+    throw new Error("Contact email is not configured on the server.");
+  }
+
+  const client = createSmtpClient();
+  const message = [
+    `From: ${formatEmailAddress("Math&Poli Nerd Contact", SMTP_FROM)}`,
+    `To: ${CONTACT_TO_EMAIL}`,
+    `Reply-To: ${formatEmailAddress(fromName, replyTo)}`,
+    `Subject: ${subject}`,
+    "MIME-Version: 1.0",
+    "Content-Type: text/plain; charset=utf-8",
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    text
+  ].join("\r\n");
+
+  try {
+    await client.connect();
+    await client.readResponse(220);
+    await client.send(`EHLO ${SMTP_HOST}`, 250);
+    if (SMTP_PORT !== 465) {
+      await client.startTls();
+      await client.send(`EHLO ${SMTP_HOST}`, 250);
+    }
+    await client.send("AUTH LOGIN", 334);
+    await client.send(encodeBase64(SMTP_USER), 334);
+    await client.send(encodeBase64(SMTP_PASS), 235);
+    await client.send(`MAIL FROM:<${SMTP_FROM}>`, 250);
+    await client.send(`RCPT TO:<${CONTACT_TO_EMAIL}>`, [250, 251]);
+    await client.send("DATA", 354);
+    await client.send(`${message.replace(/\n\./g, "\n..")}\r\n.`, 250);
+    await client.send("QUIT", 221);
+  } finally {
+    client.close();
+  }
+}
+
 function slugify(value) {
   return String(value || "")
     .toLowerCase()
@@ -174,6 +296,46 @@ async function handleApi(req, res, pathname) {
       return sendJson(res, 404, { error: "Post not found." });
     }
     return sendJson(res, 200, publicPost(post));
+  }
+
+  if (req.method === "POST" && pathname === "/api/contact") {
+    try {
+      const input = JSON.parse(await readBody(req) || "{}");
+      const firstName = cleanText(input.firstName, 80);
+      const lastName = cleanText(input.lastName, 80);
+      const email = cleanText(input.email, 160);
+      const topic = cleanText(input.subject, 120) || "General Inquiry";
+      const message = cleanText(input.message, 4000);
+      const fullName = [firstName, lastName].filter(Boolean).join(" ") || "Website visitor";
+
+      if (!firstName || !email || !message) {
+        return sendJson(res, 400, { error: "Please fill in your name, email, and message." });
+      }
+      if (!isValidEmail(email)) {
+        return sendJson(res, 400, { error: "Please enter a valid email address." });
+      }
+
+      await sendEmail({
+        fromName: fullName,
+        replyTo: email,
+        subject: `New contact message: ${topic}`,
+        text: [
+          "New message from the Math&Poli Nerd contact form.",
+          "",
+          `Name: ${fullName}`,
+          `Email: ${email}`,
+          `Subject: ${topic}`,
+          "",
+          "Message:",
+          message
+        ].join("\n")
+      });
+
+      return sendJson(res, 200, { success: true });
+    } catch (error) {
+      console.error("Could not send contact message:", error);
+      return sendJson(res, 500, { error: "Your message could not be sent right now. Please try again later." });
+    }
   }
 
   if (["POST", "PUT", "DELETE"].includes(req.method) && !isAuthorized(req)) {

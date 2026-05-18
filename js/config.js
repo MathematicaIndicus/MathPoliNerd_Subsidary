@@ -4,5 +4,8 @@ window.MathPoliNerdConfig = {
   BLOG_API_BASE_URL: "",
 
   // Optional. Leave blank to reuse BLOG_API_BASE_URL for the admin editor.
-  ADMIN_API_BASE_URL: ""
+  ADMIN_API_BASE_URL: "",
+
+  // Optional. Leave blank to reuse BLOG_API_BASE_URL for contact form submissions.
+  CONTACT_API_BASE_URL: ""
 };

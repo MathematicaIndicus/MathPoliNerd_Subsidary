@@ -1165,6 +1165,7 @@ ul { list-style: none; }
 }
 .form-textarea { resize: vertical; min-height: 130px; }
 .form-submit { width: 100%; padding: 14px; font-size: .85rem; letter-spacing: .12em; }
+.form-submit:disabled { opacity: .7; cursor: wait; transform: none; }
 .form-note { font-family: var(--font-ui); font-size: .7rem; color: var(--ink-muted); text-align: center; margin-top: 14px; }
 .success-msg {
   display: none;

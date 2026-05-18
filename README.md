@@ -22,6 +22,8 @@ Static public website with a separate blog API/admin server.
 2. Set these environment variables on the server:
    - `BLOG_ADMIN_TOKEN`: a long private token only you know.
    - `PUBLIC_ORIGINS`: your public website origin, for example `https://yourname.github.io`. Use `*` while testing if needed.
+   - `CONTACT_TO_EMAIL`: the private email address where contact form messages should be delivered.
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`: SMTP credentials for a verified sender account. For Gmail, use an app password rather than your main account password.
    - `PORT`: optional. Many hosts set this automatically.
 3. Confirm the API works at `https://your-server.example/api/posts`.
 4. Edit `config.js` before publishing the static site:
